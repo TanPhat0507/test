@@ -37,12 +37,24 @@ namespace Tic_Tac_Toe
             get { return currentplayer; }
             set { currentplayer = value; }
         }
-        //private TextBox playername;
-        //public TextBox PlayerName
-        //{
-        //    get { return playername; }
-        //    set { playername = value; }
-        //}
+        private PictureBox pictureBoxturn;
+        public PictureBox PictureBoxTurn
+        {
+            get { return pictureBoxturn; }
+            set { pictureBoxturn = value; }
+        }
+        private Label labelplayer;
+        public Label LabelPlayer
+        {
+            get { return labelplayer; }
+            set { labelplayer = value; }
+        }
+        private Label labelrobot;
+        public Label LabelRobot
+        {
+            get { return labelrobot; }
+            set { labelrobot = value; }
+        }
         //private TextBox robotname;
         //public TextBox RobotName
         //{
@@ -56,23 +68,48 @@ namespace Tic_Tac_Toe
             get { return matrix; }
             set { matrix = value; }
         }
+        private event EventHandler playerMarked;// Notify:player clicked
+        public event EventHandler PlayerMarked
+        {
+            add
+            {
+                playerMarked += value;
+            }
+            remove
+            {
+                playerMarked -= value;
+            }
+        }
+
+        private event EventHandler endedGame; // Notify:end game
+        public event EventHandler EndedGame
+        {
+            add
+            {
+                endedGame += value;
+            }
+            remove
+            {
+                endedGame -= value;
+            }
+        }
         #endregion
 
         #region Initialize
 
-        public Chessboardmanager(Panel chessboard/*, TextBox playername, TextBox robotname*/)
+        public Chessboardmanager(Panel chessboard,PictureBox pictureBoxturn, Label labelplayer, Label labelrobot /*, TextBox playername, TextBox robotname*/)
         {
             this.chessboard = chessboard;
+            this.PictureBoxTurn = pictureBoxturn;
+            this.LabelPlayer = labelplayer;
+            this.LabelRobot = labelrobot;
             //this.PlayerName = playername;
             //this.RobotName = robotname;
             this.Player = new List<Player>()
             {
-                new Player("Fat",Image.FromFile(Application.StartupPath + "\\Resources\\3515278.png")),
-                new Player("AI", Image.FromFile(Application.StartupPath + "\\Resources\\1998595.png"))
+                new Player("1",Image.FromFile(Application.StartupPath + "\\Resources\\3515278.png")),
+                new Player("2", Image.FromFile(Application.StartupPath + "\\Resources\\1998595.png"))
             };
-
-            CurrentPlayer = 0;
-            //ChangePlayer();
 
         }
 
@@ -81,6 +118,11 @@ namespace Tic_Tac_Toe
         #region Methods
         public void draw_chess_board()
         {
+            ChessBoard.Enabled = true;
+            ChessBoard.Controls.Clear();
+            CurrentPlayer = 0;
+
+            ChangePlayer();
             Matrix = new List<List<Button>>();
 
             Button oldbutton = new Button() { Width = 0, Location = new Point(0, 0) };
@@ -113,33 +155,64 @@ namespace Tic_Tac_Toe
                 oldbutton.Height = 0;
             }
         }
+       
+        int flag;
+        int score1 = 0;
+        int score2 = 0;
         int dem = 0;
+
         void btn_Click(object sender, EventArgs e)
         {
-           
             Button btn = sender as Button;
             dem++;
             //btn.BackgroundImage = Image.FromFile(Application.StartupPath + "\\Resources\\X.png");
             if (btn.BackgroundImage != null) { return; }
             Mark(btn);
-            //ChangePlayer();
+            ChangePlayer();
+            if (playerMarked != null)
+                playerMarked(this, new EventArgs());
+        
             if (isEndGame(btn))
             {
-                EndGame();
+                if (flag == 0)
+                {
+                    EndGame();
+                    MessageBox.Show("O won");
+                    score2++;
+                    labelrobot.Text = "Score: " + score2;
+                    dem = 0;
+                    
+                }
+
+                else
+                {
+                    EndGame();
+                    MessageBox.Show("X won");
+                    score1++;
+                    labelplayer.Text = "Score: " + score1;
+                    dem = 0;
+                }
+                
+                //EndGame();
             }
             else if (dem==9)
             {
+                EndGame();
                 DrawGame();
+                dem = 0;
             }
         }
         
         private void EndGame()
         {
-            MessageBox.Show("End game!");
+            if (endedGame != null)
+                endedGame(this, new EventArgs());
+            
         }
         private void DrawGame()
         {
             MessageBox.Show("Draw!");
+            
         }
    
         private bool isEndGame(Button btn)
@@ -286,12 +359,15 @@ namespace Tic_Tac_Toe
             btn.BackgroundImage = Player[CurrentPlayer].Mark;
 
             CurrentPlayer = CurrentPlayer == 1 ? 0 : 1;
+
+            if (currentplayer == 0) flag = 0;
+            else flag = 1;
         }
-        //private void ChangePlayer()
-        //{
-        //    PlayerName.Text = Player[CurrentPlayer].Name;
-        //    RobotName.Text = Player[CurrentPlayer].Name;
-        //}
+        private void ChangePlayer()
+        {
+            PictureBoxTurn.Image = Player[CurrentPlayer].Mark;
+        }
+        
         #endregion
     }
 }
